@@ -1,8 +1,9 @@
-import userModel from "../model/userModel";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import jwt from "jsonwebtoken";
+import User from "../model/userModel.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your jwt secret key ";
+const TOKEN_EXPIRES = "24h";
 const createToken = (userId) =>
   jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
 //register user
@@ -26,15 +27,15 @@ export async function registerUser(req, res) {
   }
 
   try {
-    if (await userModel.findOne({ email })) {
+    if (await User.findOne({ email })) {
       return res
         .status(409)
         .json({ success: false, message: "Email already in use" });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const user = await user.create({ name, email, password: hashed });
+    const user = await User.create({ name, email, password: hashed });
     const token = createToken(user._id);
-    res.staus(201).json({
+    res.status(201).json({
       success: true,
       token,
       user: { name: user.name, email: user.email, id: user._id },
@@ -75,6 +76,21 @@ export async function loginUser(req, res) {
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ sucess: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+//get current user
+export async function getCurrentUser(req, res) {
+  try {
+    const user = await User.findById(req.user.id).select("name email");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "user not found" });
+    }
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("get current user error:", err);
+    res.status(500).json({ success: false, message: "server error" });
   }
 }
