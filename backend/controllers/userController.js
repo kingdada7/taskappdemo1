@@ -105,12 +105,10 @@ export async function updateProfile(req, res) {
   try {
     const exists = await User.findOne({ email, _id: { $ne: req.user.id } });
     if (exists) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          message: "email already in use by another account ",
-        });
+      return res.status(409).json({
+        success: false,
+        message: "email already in use by another account ",
+      });
     }
     const user = await User.findByIdAndUpdate(
       req.user.id,
@@ -123,3 +121,30 @@ export async function updateProfile(req, res) {
     res.status(500).json({ success: false, message: "server error" });
   }
 }
+//change user password
+export async function updatePassword(req, res) {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword || newPassword.length < 8) {
+    return res
+      .status(400)
+      .json({ success: false, message: "password invalid or too short" });
+  }
+  try{
+    const user = await User.findById(req.user.id).select("password");
+    if(!user){
+      return res.status(404).json({success:false,message:"user not found"});
+    }
+    const match = await bcrypt.compare(currentPassword ,user.Password);
+    if(!match){
+      return res.status (401).json({success:false,messsage:"current password incomplete"})
+    }
+    user.password = await bcrypt.hash(newPassword,10);
+      await user.save();
+      res.json({success:true,message:"password updated successfully"})
+    
+  }catch(err){
+    console.error("update password error:", err);
+    res.status(500).json({success:false,message:"server error"})
+  }
+}
+
