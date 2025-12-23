@@ -121,7 +121,7 @@ export async function updateProfile(req, res) {
     res.status(500).json({ success: false, message: "server error" });
   }
 }
-//change user password
+//  
 export async function updatePassword(req, res) {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword || newPassword.length < 8) {
