@@ -30,3 +30,17 @@ export const getTasks = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// get a single task by ID
+export const getTaskById = async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id, owner: req.user.id });
+    if (!task)
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not found" });
+    res.json({ success: true, task });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
