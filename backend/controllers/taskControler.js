@@ -44,3 +44,24 @@ export const getTaskById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+//update a task
+export const updateTask = async (req, res) => {
+  try {
+    const data = { ...req.body };
+    if (data.completed !== undefined) {
+      data.completed = data.completed === "Yes" || data.completed === true;
+    }
+    const updated = await Task.findOneAndUpdate(
+      { _id: req.params.id, owner: req.user.id },
+      data,
+      { new: true, runValidators: true }
+    );
+    if (!updated)
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not yours" });
+    res.json({ success: true, task: updated });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
