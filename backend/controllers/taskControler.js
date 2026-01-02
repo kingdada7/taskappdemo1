@@ -65,3 +65,20 @@ export const updateTask = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// delete a task
+export const deleteTask = async (req, res) => {
+  try {
+    const deleted = await Task.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user.id,
+    });
+    if (!deleted)
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not yours" });
+    res.json({ success: true, message: "Task deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
