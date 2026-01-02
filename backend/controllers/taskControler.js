@@ -19,3 +19,14 @@ export const createTask = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+// get all tasks for the logged-in user
+export const getTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({ owner: req.user.id }).sort({
+      createdAt: -1,
+    });
+    res.json({ success: true, tasks });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
